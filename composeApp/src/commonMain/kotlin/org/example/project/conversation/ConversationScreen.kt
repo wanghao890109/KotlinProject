@@ -44,7 +44,8 @@ fun ConversationScreen(click: (IMConversation) -> Unit) {
         save = { item -> JsonUtil.toJson(item) },  // 转换为 String 存储
         restore = { data -> JsonUtil.fromJson(data) }
     )
-    val conversations: MutableList<IMConversation> by rememberSaveable(stateSaver = conversationsSaver) {
+    val update = remember { mutableStateListOf<Int>() }
+    val conversations: MutableList<IMConversation> by rememberSaveable(stateSaver = conversationsSaver, key = "$update") {
         mutableStateOf(mutableStateListOf())
     }
 
@@ -52,23 +53,23 @@ fun ConversationScreen(click: (IMConversation) -> Unit) {
     val listState = rememberLazyListState()
 
     LaunchedEffect(Unit) {
-        if (conversations.isEmpty()) {
-            IMSDK.v2TIMConversationManager.getConversationList(object : TCallback<List<IMConversation>> {
-                override fun onSuccess(t: List<IMConversation>) {
-                    conversations.addAll(t)
-                }
+        IMSDK.v2TIMConversationManager.getConversationList(object : TCallback<List<IMConversation>> {
+            override fun onSuccess(t: List<IMConversation>) {
+                conversations.clear()
+                conversations.addAll(t)
+            }
 
-                override fun onError(code: Int, desc: String?) {
-                    ALog.log("获取会话列表失败", "$code, $desc")
-                }
-            })
-        }
+            override fun onError(code: Int, desc: String?) {
+                ALog.log("获取会话列表失败", "$code, $desc")
+            }
+        })
     }
 
     DisposableEffect(true) {
         val callback = object : IMConversationListener {
             override fun onNewConversation(t: List<IMConversation>) {
                 conversations.addAll(t)
+                update += 1
             }
 
             override fun onConversationChanged(t: List<IMConversation>) {
@@ -78,6 +79,7 @@ fun ConversationScreen(click: (IMConversation) -> Unit) {
                         conversations[findIndex] = item
                     }
                 }
+                update += 1
             }
 
             override fun onConversationDeleted(t: List<String>) {
