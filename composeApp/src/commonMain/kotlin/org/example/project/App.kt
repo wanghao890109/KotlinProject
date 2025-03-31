@@ -61,7 +61,7 @@ fun App() {
                     exitTransition = { ExitTransition.None },
                     popEnterTransition = { EnterTransition.None },
                     popExitTransition = { ExitTransition.None }) {
-                    MainScreen {
+                    MainScreen() {
                         navController.navigate(it) {
                             //popUpTo(navController.graph.startDestinationId) { saveState = true }
                             launchSingleTop = true

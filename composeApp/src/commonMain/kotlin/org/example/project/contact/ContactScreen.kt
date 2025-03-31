@@ -18,39 +18,47 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults.colors
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.Saver
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import org.example.project.imsdk.IMSDK
+import androidx.lifecycle.viewmodel.compose.viewModel
 import org.example.project.imsdk.IMUser
-import org.example.project.imsdk.TCallback
 import org.example.project.ui.AppColors
+import org.example.project.uitls.JsonUtil
 import org.example.project.uitls.StatusBarUtils
-import org.example.project.uitls.getFirstLetter
 
 @Composable
 fun ContactScreen(click: (IMUser) -> Unit) {
 
-    val groupedContacts: Map<Char, List<IMUser>> by produceState(initialValue = emptyMap()) {
-        IMSDK.relationshipManager.getFriendList(object : TCallback<List<IMUser>> {
-            override fun onSuccess(t: List<IMUser>) {
-                value = t.groupBy { getFirstLetter(it.name) }.toList().sortedBy {
-                    if (it.first == '#') 'Z' else if (it.first.isLetter()) 'Y' else it.first
-                }.toMap(LinkedHashMap())
-            }
+    val viewModel = viewModel<ContactViewModel>()
 
-            override fun onError(code: Int, desc: String?) {
+    val groupedContactsSaver = Saver<Map<Char, List<IMUser>>, String>(
+        save = { item -> JsonUtil.toJson(item) },  // 转换为 String 存储
+        restore = { data -> JsonUtil.fromJson(data) }
+    )
 
-            }
-        })
+    var groupedContacts: Map<Char, List<IMUser>> by rememberSaveable(stateSaver = groupedContactsSaver) {
+        mutableStateOf(mutableMapOf())
     }
+
+    LaunchedEffect(Unit) {
+        if (groupedContacts.isEmpty()) {
+            viewModel.getFriendList()
+            viewModel.friendMap.collect {
+                groupedContacts = it
+            }
+        }
+    }
+
     val listState = rememberLazyListState()
 
     Column(modifier = Modifier.fillMaxSize().background(AppColors.FFF5F5F5)

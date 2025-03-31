@@ -18,7 +18,10 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.Saver
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -37,27 +40,29 @@ import org.example.project.uitls.StatusBarUtils
 @Composable
 fun ConversationScreen(click: (IMConversation) -> Unit) {
 
-//    val conversationsSaver = Saver<MutableList<IMConversation>, String>(
-//        save = { item -> JsonUtil.toJson(item) },  // 转换为 String 存储
-//        restore = { data -> JsonUtil.fromJson(data) }
-//    )
-//    val conversations: MutableList<IMConversation> by rememberSaveable(stateSaver = conversationsSaver) {
-//        mutableStateOf(mutableStateListOf())
-//    }
+    val conversationsSaver = Saver<MutableList<IMConversation>, String>(
+        save = { item -> JsonUtil.toJson(item) },  // 转换为 String 存储
+        restore = { data -> JsonUtil.fromJson(data) }
+    )
+    val conversations: MutableList<IMConversation> by rememberSaveable(stateSaver = conversationsSaver) {
+        mutableStateOf(mutableStateListOf())
+    }
 
-    val conversations = remember { mutableStateListOf<IMConversation>() }
+//    val conversations = remember { mutableStateListOf<IMConversation>() }
     val listState = rememberLazyListState()
 
     LaunchedEffect(Unit) {
-        IMSDK.v2TIMConversationManager.getConversationList(object : TCallback<List<IMConversation>> {
-            override fun onSuccess(t: List<IMConversation>) {
-                conversations.addAll(t)
-            }
+        if (conversations.isEmpty()) {
+            IMSDK.v2TIMConversationManager.getConversationList(object : TCallback<List<IMConversation>> {
+                override fun onSuccess(t: List<IMConversation>) {
+                    conversations.addAll(t)
+                }
 
-            override fun onError(code: Int, desc: String?) {
-                ALog.log("获取会话列表失败", "$code, $desc")
-            }
-        })
+                override fun onError(code: Int, desc: String?) {
+                    ALog.log("获取会话列表失败", "$code, $desc")
+                }
+            })
+        }
     }
 
     DisposableEffect(true) {

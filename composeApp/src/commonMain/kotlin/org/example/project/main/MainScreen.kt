@@ -1,5 +1,7 @@
 package org.example.project.main
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.Crossfade
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
 import androidx.compose.foundation.background
@@ -11,8 +13,10 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.Saver
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.saveable.rememberSaveableStateHolder
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -43,10 +47,10 @@ fun MainScreen(router: (String) -> Unit) {
     }
 
     val navController: NavHostController = rememberNavController()
-
     Column(modifier = Modifier.fillMaxSize()) {
         Box(modifier = Modifier.weight(1.0f)) {
-            NavHost(navController = navController, startDestination = navigationItem.route) {
+
+            NavHost(navController = navController, startDestination = NavigationItem.Home.route) {
 
                 composable(NavigationItem.Home.route,
                     enterTransition = { EnterTransition.None },
@@ -70,6 +74,7 @@ fun MainScreen(router: (String) -> Unit) {
                     popEnterTransition = { EnterTransition.None },
                     popExitTransition = { ExitTransition.None }) {
                     DiscoveryScreen()
+
                 }
                 composable(NavigationItem.Contact.route,
                     enterTransition = { EnterTransition.None },
@@ -85,7 +90,7 @@ fun MainScreen(router: (String) -> Unit) {
                     exitTransition = { ExitTransition.None },
                     popEnterTransition = { EnterTransition.None },
                     popExitTransition = { ExitTransition.None }) {
-                    MineScreen(){
+                    MineScreen() {
                         router.invoke(it)
                     }
                 }

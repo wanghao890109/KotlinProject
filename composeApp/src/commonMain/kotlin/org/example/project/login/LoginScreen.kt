@@ -52,7 +52,7 @@ fun LoginScreen(callback: () -> Unit) {
 
     val defaultPhone = "14400002201"
     var phoneText by remember { mutableStateOf(TextFieldValue(defaultPhone, TextRange(defaultPhone.length))) }
-    var codeText by remember { mutableStateOf("0330") }
+    var codeText by remember { mutableStateOf("0331") }
     var loginButtonState by remember { mutableStateOf(codeText.length == 4) }
     val phoneFocusRequester = remember { FocusRequester() }
     val codeFocusRequester = remember { FocusRequester() }
